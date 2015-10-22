@@ -1,4 +1,10 @@
-var app = angular.module('exampleViewerApp', ['ngRoute']);
+var app = angular.module('exampleViewerApp', [
+  'ngRoute',
+
+  'exampleViewerApp.exampleService',
+  'exampleViewerApp.exampleListController',
+  'exampleViewerApp.exampleDetailController'
+]);
 
 app.config(function($routeProvider) {
   $routeProvider.
@@ -6,7 +12,7 @@ app.config(function($routeProvider) {
       templateUrl: 'example-list.html',
       controller: 'ExampleListCtrl'
     }).
-    when('/:exampleNumber', {
+    when('/:location', {
       templateUrl: 'example-detail.html',
       controller: 'ExampleDetailCtrl'
     }).
@@ -15,75 +21,36 @@ app.config(function($routeProvider) {
     });
 });
 
-app.factory('examples', function($http){
-
-  function getData(callback){
-    $http({
-      method: 'GET',
-      url: '../examples.json',
-      cache: true
-    }).success(callback);
-  }
-
-  return {
-    list: getData,
-    find: function(exampleNumber, callback){
-      getData(function(data) {
-        var index = parseInt(exampleNumber) - 1;
-        callback(data[index]);
-      });
-    }
-  };
-});
 
 // Responsible for navigating based on key events.
-app.controller('MainCtrl', function ($scope, $document, $location, examples){
-  examples.list(function(examples){
+app.controller('MainCtrl', function ($scope, $document, $location, exampleService){
+  exampleService.list(function(examples){
+    // keycode for left and right key
     var LEFT = 37,
         RIGHT = 39;
 
     $scope.changeExample = function(e) {
-      var path = $location.path(),
-          // The example number
-          n;
+      var path = $location.path();
+          // The example location
+      var loc = path.substr(1);
 
-      // If there is a number,
-      if(path.length > 1){
+      // If there is a location,
+      if(loc){
+        exampleService.find(loc, function(example){
+          var index = example.index || 0;
+          if(e.keyCode === RIGHT && index < examples.length ){
+            index++;
+          } else if(e.keyCode === LEFT && index > 0) {
+            index--;
+          }
 
-        // Extract the example number from the path.
-        n = parseInt(path.substr(1), 10);
+          var nextLocation = examples[index].location
+          // Navigate to the previous or next example.
+          $location.path('/' + nextLocation);
+        });
 
-        // Increment or decrement the example number.
-        if(e.keyCode === RIGHT && n < examples.length){
-          n++;
-        } else if(e.keyCode === LEFT && n > 1) {
-          n--;
-        }
-        
-        // Navigate to the previous or next example.
-        $location.path('/' + n);
       }
     };
-  });
-});
-
-app.controller('ExampleListCtrl', function ($scope, examples){
-  examples.list(function(examples) {
-    $scope.examples = examples;
-  });
-});
-
-app.controller('ExampleDetailCtrl',
-    function ($scope, $routeParams, $http, $sce, examples){
-  examples.find($routeParams.exampleNumber, function(example) {
-    $scope.example = example;
-    var examplePath = '../examples/snapshots/' + example.name;
-    $scope.runUrl = examplePath + '/index.html';
-    $http.get(examplePath + '/README.md').success(function(data) {
-      // Remove first line, as it appears elsewhere on the page (called 'message').
-      var md = data.split('\n').splice(1).join('\n');
-      $scope.readme = $sce.trustAsHtml(marked(md));
-    });
   });
 });
 
@@ -94,12 +61,15 @@ app.controller('ExampleDetailCtrl',
  */
 app.directive('file', function(){
   return {
-    scope: { file: '=', example: '=' },
+    scope: {
+      file: '=',
+      example: '='
+    },
     restrict: 'A',
     controller: function($scope, $http){
       var path = [
-        '../examples/snapshots',
-        $scope.example.name,
+        '../examples/angular',
+        $scope.example.location,
         $scope.file
       ].join('/');
       $http.get(path).success(function(data) {

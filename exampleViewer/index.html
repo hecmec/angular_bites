@@ -11,8 +11,8 @@
     <title>Example Viewer</title>
 
     <!-- Angular web application framework -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular-route.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.18/angular.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.18/angular-route.min.js"></script>
 
     <!-- CodeMirror syntax highlighing code editor -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/3.22.0/codemirror.min.js"></script>
@@ -28,7 +28,12 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 
     <!-- Our Angular app -->
+    <script src="polyfills.js"> </script>
     <script src="app.js"> </script>
+    <script src="exampleDetailController.js"> </script>
+    <script src="exampleListController.js"> </script>
+    <script src="exampleService.js"> </script>
+    <script src="exampleFileDirective.js"> </script>
   </head>
   <body ng-controller="MainCtrl" ng-keydown="changeExample($event)">
     <!-- This div will have content injected into it 
